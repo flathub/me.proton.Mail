@@ -6,6 +6,7 @@ base: org.electronjs.Electron2.BaseApp
 base-version: *runtime-version
 command: start-proton-mail
 finish-args:
+  - --device=all
   - --share=ipc
   - --share=network
   - --socket=wayland
