@@ -45,8 +45,8 @@ modules:
       - type: file
         dest-filename: ProtonMail.deb
         only-arches: [x86_64]
-        url: https://proton.me/download/mail/linux/ProtonMail-desktop-beta.deb
-        sha512: 108e434004b323d63f3240f86f8c6e13d0e42d09a59846a8d04b44914927985e93e68ca11ca110581186fc663b28e5eec6d3b49751c0eca9e04f0dea3cf753b3
+        url: https://proton.me/download/mail/linux/1.0.6/ProtonMail-desktop-beta.deb
+        sha512: fb51c0cd2124188ec40ba38c863933905a26a7457e8738048865ed4a43feb6afb30df8f20924eccfaca9e69e17f0b63960fc2e986edaaf714906d56534b8b462
         x-checker-data:
           type: json
           url: https://proton.me/download/mail/linux/version.json
@@ -64,7 +64,7 @@ modules:
             set -oue pipefail
 
             export TMPDIR="${XDG_RUNTIME_DIR}/app/${FLATPAK_ID}"
-            
+
             FLAGS=''
 
             if [[ $XDG_SESSION_TYPE == "wayland" && -e "$XDG_RUNTIME_DIR/$WAYLAND_DISPLAY" ]]
