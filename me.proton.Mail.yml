@@ -10,17 +10,26 @@ finish-args:
   - --share=ipc
   - --share=network
   - --socket=wayland
-  - --socket=fallback-x11
+  - --socket=x11
   - --talk-name=org.freedesktop.secrets
   - --env=XCURSOR_PATH=~/.icons:/app/share/icons:/icons:/run/host/user-share/icons:/run/host/share/icons
 modules:
   - shared-modules/libsecret/libsecret.json
+  - name: cobalt
+    buildsystem: meson
+    sources:
+      - type: git
+        url: https://github.com/refi64/cobalt
+        tag: v2024.04
+        commit: aeebabd4b6851f617c21867c429f81071fa3a876
+        x-checker-data:
+          type: git
+          tag-pattern: ^v([\d.]+)$
   - name: proton-mail
     buildsystem: simple
     build-commands:
       - bsdtar -Oxf ProtonMail.deb data.tar.xz | bsdtar -xf -
       - mv "usr/lib/proton-mail" ${FLATPAK_DEST}/proton-mail
-      - rm ${FLATPAK_DEST}/proton-mail/chrome-sandbox
 
       # To allow separate locales
       # https://searchfox.org/mozilla-central/rev/8a4f55bc09ffc5c25dcb4586c51ae4a9fee77b4c/taskcluster/docker/firefox-flatpak/runme.sh#131-133
@@ -39,6 +48,7 @@ modules:
 
       # Install the wrapper script to start it.
       - install -Dm 755 start-proton-mail.sh /app/bin/start-proton-mail
+      - install -Dm 644 -t /app/etc cobalt.ini
 
       - install -Dm644 me.proton.Mail.metainfo.xml /app/share/metainfo/$FLATPAK_ID.metainfo.xml
     sources:
@@ -59,24 +69,10 @@ modules:
       - type: script
         dest-filename: start-proton-mail.sh
         commands:
-          # Reference: https://github.com/flathub/im.riot.Riot/blob/491621f36256eca14609477482cdeeb800714ea5/element.sh
-          - |
-            set -oue pipefail
-
-            export TMPDIR="${XDG_RUNTIME_DIR}/app/${FLATPAK_ID}"
-
-            FLAGS=''
-
-            if [[ $XDG_SESSION_TYPE == "wayland" && -e "$XDG_RUNTIME_DIR/$WAYLAND_DISPLAY" ]]
-            then
-                FLAGS="$FLAGS --enable-wayland-ime --ozone-platform-hint=wayland --enable-features=WaylandWindowDecorations --gtk-version=4"
-                if  [ -c /dev/nvidia0 ]
-                then
-                    FLAGS="$FLAGS --disable-gpu-sandbox"
-                fi
-            fi
-
-            exec zypak-wrapper "/app/proton-mail/Proton Mail Beta" $FLAGS "$@"
+          - exec cobalt "$@"
 
       - type: file
         path: me.proton.Mail.metainfo.xml
+
+      - type: file
+        path: cobalt.ini
