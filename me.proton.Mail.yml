@@ -50,8 +50,8 @@ modules:
         x-checker-data:
           type: json
           url: https://proton.me/download/mail/linux/version.json
-          version-query: .Releases[0].Version
-          url-query: .Releases[0].File[0].Url
+          version-query: .Releases | map(select(.CategoryName == "Stable")) | .[0].Version
+          url-query: .Releases | map(select(.CategoryName == "Stable")) | .[0].File[0].Url
 
       - type: file
         path: icon.svg
