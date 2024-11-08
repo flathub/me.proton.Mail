@@ -9,11 +9,11 @@ finish-args:
   - --device=all
   - --share=ipc
   - --share=network
-  - --socket=wayland
-  - --socket=fallback-x11
+  - --socket=x11
   - --talk-name=org.freedesktop.secrets
   - --env=XCURSOR_PATH=~/.icons:/app/share/icons:/icons:/run/host/user-share/icons:/run/host/share/icons
-  - --env=ELECTRON_OZONE_PLATFORM_HINT=auto
+  # Workaround https://github.com/flathub/me.proton.Mail/issues/17
+  - --env=ELECTRON_OZONE_PLATFORM_HINT=x11
 modules:
   - shared-modules/libsecret/libsecret.json
   - name: proton-mail
