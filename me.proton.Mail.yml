@@ -1,4 +1,4 @@
-app-id: me.proton.Mail
+dapp-id: me.proton.Mail
 runtime: org.freedesktop.Platform
 runtime-version: &runtime-version '24.08'
 sdk: org.freedesktop.Sdk
@@ -10,7 +10,6 @@ finish-args:
   - --share=ipc
   - --share=network
   - --socket=x11
-  - --talk-name=org.freedesktop.secrets
   - --env=XCURSOR_PATH=~/.icons:/app/share/icons:/icons:/run/host/user-share/icons:/run/host/share/icons
   # Workaround https://github.com/flathub/me.proton.Mail/issues/17
   - --env=ELECTRON_OZONE_PLATFORM_HINT=x11
