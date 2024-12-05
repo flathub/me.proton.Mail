@@ -60,6 +60,7 @@ modules:
       - install -Dm644 usr/share/applications/proton-mail.desktop "${FLATPAK_DEST}/share/applications/${FLATPAK_ID}.desktop"
       - desktop-file-edit --set-key=Exec --set-value='start-proton-mail %U' --set-icon=${FLATPAK_ID}
         "${FLATPAK_DEST}/share/applications/${FLATPAK_ID}.desktop"
+      - patch-desktop-filename "${FLATPAK_DEST}/proton-mail/resources/app.asar"
 
       # Install the wrapper script to start it.
       - install -Dm 755 start-proton-mail.sh /app/bin/start-proton-mail
