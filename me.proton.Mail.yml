@@ -70,8 +70,8 @@ modules:
       - type: file
         dest-filename: ProtonMail.deb
         only-arches: [x86_64]
-        url: https://proton.me/download/mail/linux/1.4.0/ProtonMail-desktop-beta.deb
-        sha512: 4e1777fd84c70e63bfb5330bc5d13bfe56d07d0544ec426d8a6d037b80568b41ec7c7055f43634e09d3bf9c3212fc7ccd730703e51c065643c2c4ceb1ad6b582
+        url: https://proton.me/download/mail/linux/1.5.1/ProtonMail-desktop-beta.deb
+        sha512: c0d60eb309170aedcc772e10ca4de73cc6fb057eaf510cc5cba996260bcdd57fd7db8f503fc2b77b40c93a411cc19848727554381a9520470a0d5119c267d6da
         x-checker-data:
           type: json
           url: https://proton.me/download/mail/linux/version.json
