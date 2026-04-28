@@ -6,7 +6,7 @@
     <summary>Secure email that protects your privacy</summary>
 
     <metadata_license>CC0-1.0</metadata_license>
-    <project_license>LicenseRef-proprietary</project_license>
+    <project_license>GPL-3.0</project_license>
 
     <developer id="me.proton">
         <name>Proton AG</name>
