@@ -117,6 +117,7 @@
     <launchable type="desktop-id">me.proton.Mail.desktop</launchable>
     <screenshots>
         <screenshot type="default">
+            <caption>Proton Mail inbox</caption>
             <image>
                 https://res.cloudinary.com/dbulfrlrz/images/w_2048,h_1152,c_scale/f_auto,q_auto/v1714568388/wp-pme/pr-key-visual-4_5142635e14/pr-key-visual-4_5142635e14.jpg</image>
         </screenshot>
