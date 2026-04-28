@@ -1,6 +1,6 @@
 app-id: me.proton.Mail
 runtime: org.freedesktop.Platform
-runtime-version: &runtime-version '25.08'
+runtime-version: &runtime-version "25.08"
 sdk: org.freedesktop.Sdk
 base: org.electronjs.Electron2.BaseApp
 base-version: *runtime-version
@@ -18,7 +18,7 @@ finish-args:
 modules:
   - name: dbus-run-session
     buildsystem: cmake
-    cleanup: ['*']
+    cleanup: ["*"]
     sources:
       - type: archive
         url: https://gitlab.freedesktop.org/dbus/dbus/-/archive/dbus-1.16.2/dbus-dbus-1.16.2.tar.gz
