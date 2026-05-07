@@ -1,6 +1,6 @@
 app-id: me.proton.Mail
 runtime: org.freedesktop.Platform
-runtime-version: &runtime-version "25.08"
+runtime-version: &runtime-version '25.08'
 sdk: org.freedesktop.Sdk
 base: org.electronjs.Electron2.BaseApp
 base-version: *runtime-version
@@ -18,7 +18,7 @@ finish-args:
 modules:
   - name: dbus-run-session
     buildsystem: cmake
-    cleanup: ["*"]
+    cleanup: ['*']
     sources:
       - type: archive
         url: https://gitlab.freedesktop.org/dbus/dbus/-/archive/dbus-1.16.2/dbus-dbus-1.16.2.tar.gz
@@ -58,8 +58,8 @@ modules:
       - type: file
         dest-filename: ProtonMail.deb
         only-arches: [x86_64]
-        url: https://proton.me/download/mail/linux/1.13.0/ProtonMail-desktop-beta.deb
-        sha512: 7977d645bd66a1724b904e675670c2da3b8cdfa1fdb606013898d7edde10a92bba53b998e82ab4418907bd34717b898e7ca22570d47ceaa75716fcd3fe60e575
+        url: https://proton.me/download/mail/linux/1.12.1/ProtonMail-desktop-beta.deb
+        sha512: e5d69709dbd9ce70eab63a8fe30698fcebe32d08db18dfccc4eb9443d4cc8067a422f4b680d9f74d5408c5f3fce95bf0ede2d4064f609415bf0b5479b55601b9
         x-checker-data:
           type: json
           url: https://proton.me/download/mail/linux/version.json
