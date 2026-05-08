@@ -9,7 +9,8 @@ finish-args:
   - --device=all
   - --share=ipc
   - --share=network
-  - --socket=x11
+  - --socket=fallback-x11
+  - --socket=wayland
   # DBus-based libsecret
   - --talk-name=org.freedesktop.secrets
   - --env=XCURSOR_PATH=~/.icons:/app/share/icons:/icons:/run/host/user-share/icons:/run/host/share/icons
