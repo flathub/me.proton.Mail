@@ -8,6 +8,6 @@ Terminal=false
 Type=Application
 Categories=Network;Email;
 Keywords=email;mail;calendar;encryption;proton;
-MimeType=x-scheme-handler/mailto;
+MimeType=x-scheme-handler/mailto;x-scheme-handler/proton-inbox;
 StartupWMClass=Proton Mail
 StartupNotify=true

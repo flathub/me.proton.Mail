@@ -161,13 +161,6 @@
     },
     {
         "type": "archive",
-        "url": "https://www.electronjs.org/headers/v39.8.10/node-v39.8.10-headers.tar.gz",
-        "strip-components": 1,
-        "sha256": "61069dec76ed8d1c10ab6825b194bdf5a19b653286a7c2684b09c62681427446",
-        "dest": "flatpak-node/cache/node-gyp/39.8.10"
-    },
-    {
-        "type": "archive",
         "url": "https://www.electronjs.org/headers/v42.9.0/node-v42.9.0-headers.tar.gz",
         "strip-components": 1,
         "sha256": "7bef173f1350b2c9622b56fcd5ea24a578d2294ab164fd0c55aefa842a0243a6",
@@ -33427,12 +33420,6 @@
         "type": "inline",
         "contents": "11",
         "dest-filename": "installVersion",
-        "dest": "flatpak-node/cache/node-gyp/39.8.10"
-    },
-    {
-        "type": "inline",
-        "contents": "11",
-        "dest-filename": "installVersion",
         "dest": "flatpak-node/cache/node-gyp/42.9.0"
     },
     {
@@ -33490,47 +33477,6 @@
         "type": "shell",
         "commands": [
             "bash flatpak-node/setup_sdk_node_headers.sh"
-        ]
-    },
-    {
-        "type": "shell",
-        "commands": [
-            "mkdir -p \"41a5d68646d956d50e13830e121ea0b3d6ab378b6a0ce422aefc1ff214707879\"",
-            "ln -s \"../SHASUMS256.txt-39.8.10\" \"41a5d68646d956d50e13830e121ea0b3d6ab378b6a0ce422aefc1ff214707879/SHASUMS256.txt\""
-        ],
-        "dest": "flatpak-node/cache/electron"
-    },
-    {
-        "type": "shell",
-        "commands": [
-            "mkdir -p \"41a5d68646d956d50e13830e121ea0b3d6ab378b6a0ce422aefc1ff214707879\"",
-            "ln -s \"../electron-v39.8.10-linux-arm64.zip\" \"41a5d68646d956d50e13830e121ea0b3d6ab378b6a0ce422aefc1ff214707879/electron-v39.8.10-linux-arm64.zip\""
-        ],
-        "dest": "flatpak-node/cache/electron",
-        "only-arches": [
-            "aarch64"
-        ]
-    },
-    {
-        "type": "shell",
-        "commands": [
-            "mkdir -p \"41a5d68646d956d50e13830e121ea0b3d6ab378b6a0ce422aefc1ff214707879\"",
-            "ln -s \"../electron-v39.8.10-linux-armv7l.zip\" \"41a5d68646d956d50e13830e121ea0b3d6ab378b6a0ce422aefc1ff214707879/electron-v39.8.10-linux-armv7l.zip\""
-        ],
-        "dest": "flatpak-node/cache/electron",
-        "only-arches": [
-            "arm"
-        ]
-    },
-    {
-        "type": "shell",
-        "commands": [
-            "mkdir -p \"41a5d68646d956d50e13830e121ea0b3d6ab378b6a0ce422aefc1ff214707879\"",
-            "ln -s \"../electron-v39.8.10-linux-x64.zip\" \"41a5d68646d956d50e13830e121ea0b3d6ab378b6a0ce422aefc1ff214707879/electron-v39.8.10-linux-x64.zip\""
-        ],
-        "dest": "flatpak-node/cache/electron",
-        "only-arches": [
-            "x86_64"
         ]
     },
     {
@@ -33762,39 +33708,6 @@
             "ln -sf \"@esbuild/linux-x64@0.28.1\" \"bin/esbuild-current\""
         ],
         "dest": "flatpak-node/cache/esbuild",
-        "only-arches": [
-            "x86_64"
-        ]
-    },
-    {
-        "type": "shell",
-        "commands": [
-            "mkdir -p \"httpsgithub.comelectronelectronreleasesdownloadv39.8.10electron-v39.8.10-linux-arm64.zip\"",
-            "ln -s \"../electron-v39.8.10-linux-arm64.zip\" \"httpsgithub.comelectronelectronreleasesdownloadv39.8.10electron-v39.8.10-linux-arm64.zip/electron-v39.8.10-linux-arm64.zip\""
-        ],
-        "dest": "flatpak-node/cache/electron",
-        "only-arches": [
-            "aarch64"
-        ]
-    },
-    {
-        "type": "shell",
-        "commands": [
-            "mkdir -p \"httpsgithub.comelectronelectronreleasesdownloadv39.8.10electron-v39.8.10-linux-armv7l.zip\"",
-            "ln -s \"../electron-v39.8.10-linux-armv7l.zip\" \"httpsgithub.comelectronelectronreleasesdownloadv39.8.10electron-v39.8.10-linux-armv7l.zip/electron-v39.8.10-linux-armv7l.zip\""
-        ],
-        "dest": "flatpak-node/cache/electron",
-        "only-arches": [
-            "arm"
-        ]
-    },
-    {
-        "type": "shell",
-        "commands": [
-            "mkdir -p \"httpsgithub.comelectronelectronreleasesdownloadv39.8.10electron-v39.8.10-linux-x64.zip\"",
-            "ln -s \"../electron-v39.8.10-linux-x64.zip\" \"httpsgithub.comelectronelectronreleasesdownloadv39.8.10electron-v39.8.10-linux-x64.zip/electron-v39.8.10-linux-x64.zip\""
-        ],
-        "dest": "flatpak-node/cache/electron",
         "only-arches": [
             "x86_64"
         ]

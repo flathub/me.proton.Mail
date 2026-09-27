@@ -18,11 +18,13 @@ permissions:
 
 jobs:
   regenerate:
+    # fork PRs get a read-only token and their branch isn't in this repo
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
     timeout-minutes: 60
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           ref: ${{ github.head_ref || github.ref }}
 
@@ -30,7 +32,7 @@ jobs:
         if: github.event_name == 'pull_request'
         run: git fetch --no-tags origin "${{ github.base_ref }}" --depth=1
 
-      - uses: actions/setup-python@v6
+      - uses: actions/setup-python@v7
 
       - run: pip install aiohttp pyyaml
 
@@ -75,24 +77,9 @@ jobs:
       - name: Add release to metainfo
         if: steps.upstream.outputs.needed == 'true'
         run: |
-          python3 - << 'EOF'
-          import subprocess, sys
-          version = "${{ steps.upstream.outputs.tag }}".removeprefix("proton-inbox-desktop@")
-          date = subprocess.check_output(
-              ["git", "-C", "_webclient", "log", "-1", "--format=%as"], text=True
-          ).strip()
-          path = "me.proton.Mail.metainfo.xml"
-          text = open(path).read()
-          if f'version="{version}"' in text:
-              sys.exit(0)
-          entry = (f'        <release version="{version}" date="{date}">\n'
-                   f'            <description/>\n'
-                   f'        </release>\n')
-          updated = text.replace("    <releases>\n", "    <releases>\n" + entry, 1)
-          if updated == text:
-              sys.exit("could not find <releases> in metainfo")
-          open(path, "w").write(updated)
-          EOF
+          TAG="${{ steps.upstream.outputs.tag }}"
+          python3 add-metainfo-release.py me.proton.Mail.metainfo.xml \
+            "${TAG#proton-inbox-desktop@}" "$(git -C _webclient log -1 --format=%as)"
 
       - name: Commit and push
         if: steps.upstream.outputs.needed == 'true'
@@ -102,5 +89,5 @@ jobs:
           git add generated-sources.json me.proton.Mail.metainfo.xml
           if ! git diff --cached --quiet; then
             git commit -m "Regenerate sources for ${{ steps.upstream.outputs.tag }}"
-            git push
+            git push origin "HEAD:${{ github.head_ref || github.ref }}"
           fi
