@@ -1,0 +1,11 @@
+--- a/applications/inbox-desktop/forge.config.ts
++++ b/applications/inbox-desktop/forge.config.ts
+@@ -56,6 +56,8 @@
+             ...getAppTransportSecuity(),
+             CFBundleIconName: "Mail", // macOS26 customizable icons
+         },
++        // Use a pre-downloaded Electron zip when building offline (Flatpak)
++        ...(process.env.FLATPAK_ELECTRON_ZIP_DIR ? { electronZipDir: process.env.FLATPAK_ELECTRON_ZIP_DIR } : {}),
+     },
+     rebuildConfig: {},
+     makers: [

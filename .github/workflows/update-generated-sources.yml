@@ -1,0 +1,93 @@
+name: Update generated sources
+
+# Regenerates generated-sources.json when a PR changes the upstream tag
+# (e.g. the external data checker's version bump PRs).
+
+on:
+  pull_request:
+    paths:
+      - me.proton.Mail.yml
+  workflow_dispatch:
+
+concurrency:
+  group: regenerate-${{ github.head_ref || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+
+jobs:
+  regenerate:
+    # fork PRs get a read-only token and their branch isn't in this repo
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.head_ref || github.ref }}
+
+      - name: Fetch base branch
+        if: github.event_name == 'pull_request'
+        run: git fetch --no-tags origin "${{ github.base_ref }}" --depth=1
+
+      - uses: actions/setup-python@v7
+
+      - run: pip install aiohttp pyyaml
+
+      - run: git clone --depth=1 https://github.com/flatpak/flatpak-builder-tools.git _tools
+
+      - name: Read tag
+        id: upstream
+        run: |
+          get_tag() { grep -oP 'tag:\s*\K(proton-inbox-desktop@[\d.]+)' ; }
+          TAG=$(get_tag < me.proton.Mail.yml)
+          [ -n "$TAG" ] || { echo "no tag found in manifest" >&2; exit 1; }
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+
+          NEEDED=true
+          if [ "${{ github.event_name }}" = pull_request ]; then
+            BASE_TAG=$(git show "origin/${{ github.base_ref }}:me.proton.Mail.yml" | get_tag || true)
+            [ "$BASE_TAG" = "$TAG" ] && NEEDED=false
+          fi
+          echo "needed=$NEEDED" >> "$GITHUB_OUTPUT"
+          echo "tag=$TAG base=${BASE_TAG:-} needed=$NEEDED"
+
+      - name: Fetch lockfile
+        if: steps.upstream.outputs.needed == 'true'
+        run: |
+          git clone --filter=blob:none --sparse \
+            --branch "${{ steps.upstream.outputs.tag }}" \
+            https://github.com/ProtonMail/WebClients.git _webclient
+          git -C _webclient sparse-checkout set --no-cone \
+            /yarn.lock /applications/inbox-desktop/package.json
+
+      - name: Regenerate generated-sources.json
+        if: steps.upstream.outputs.needed == 'true'
+        run: |
+          python3 strip-private-registry-lockfile-entries.py \
+            _webclient/yarn.lock _webclient/yarn-public.lock
+          PYTHONPATH=_tools/node python3 -m flatpak_node_generator \
+            --electron-node-headers yarn _webclient/yarn-public.lock \
+            -o generated-sources.json
+          python3 prune-generated-sources.py generated-sources.json \
+            _webclient/applications/inbox-desktop/package.json
+
+      - name: Add release to metainfo
+        if: steps.upstream.outputs.needed == 'true'
+        run: |
+          TAG="${{ steps.upstream.outputs.tag }}"
+          python3 add-metainfo-release.py me.proton.Mail.metainfo.xml \
+            "${TAG#proton-inbox-desktop@}" "$(git -C _webclient log -1 --format=%as)"
+
+      - name: Commit and push
+        if: steps.upstream.outputs.needed == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add generated-sources.json me.proton.Mail.metainfo.xml
+          if ! git diff --cached --quiet; then
+            git commit -m "Regenerate sources for ${{ steps.upstream.outputs.tag }}"
+            git push origin "HEAD:${{ github.head_ref || github.ref }}"
+          fi

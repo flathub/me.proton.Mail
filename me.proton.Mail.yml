@@ -1,9 +1,11 @@
 app-id: me.proton.Mail
 runtime: org.freedesktop.Platform
-runtime-version: &runtime-version '25.08'
+runtime-version: &runtime-version '26.08'
 sdk: org.freedesktop.Sdk
 base: org.electronjs.Electron2.BaseApp
 base-version: *runtime-version
+sdk-extensions:
+  - org.freedesktop.Sdk.Extension.node24
 command: start-proton-mail
 finish-args:
   - --device=all
@@ -14,26 +16,44 @@ finish-args:
   # DBus-based libsecret
   - --talk-name=org.freedesktop.secrets
   - --env=XCURSOR_PATH=~/.icons:/app/share/icons:/icons:/run/host/user-share/icons:/run/host/share/icons
-  # Workaround https://github.com/flathub/me.proton.Mail/issues/17
-  - --env=ELECTRON_OZONE_PLATFORM_HINT=x11
 modules:
-  - name: dbus-run-session
-    buildsystem: cmake
-    cleanup: ['*']
-    sources:
-      - type: archive
-        url: https://gitlab.freedesktop.org/dbus/dbus/-/archive/dbus-1.16.2/dbus-dbus-1.16.2.tar.gz
-        sha256: d77cc71acd93e85f2bd2a6fe3a40e5bd023519e3e9fa9b5361e7109f42b74060
-        x-checker-data:
-          type: anitya
-          project-id: 5356
-          url-template: https://gitlab.freedesktop.org/dbus/dbus/-/archive/dbus-$version/dbus-dbus-$version.tar.gz
-
   - name: proton-mail
     buildsystem: simple
+    build-options:
+      append-path: /usr/lib/sdk/node24/bin
+      env:
+        HOME: /run/build/proton-mail
+        # skips husky/config-app in the root postinstall
+        CI: 'true'
+        SENTRY_CLI_SKIP_DOWNLOAD: '1'
+        # the workspace list is trimmed below, so the lockfile will change
+        YARN_ENABLE_IMMUTABLE_INSTALLS: '0'
+        YARN_ENABLE_NETWORK: '0'
+        YARN_ENABLE_TELEMETRY: '0'
+        YARN_ENABLE_GLOBAL_CACHE: '0'
+        YARN_GLOBAL_FOLDER: /run/build/proton-mail/flatpak-node/yarn-berry
+        XDG_CACHE_HOME: /run/build/proton-mail/flatpak-node/cache
+        FLATPAK_ELECTRON_ZIP_DIR: /run/build/proton-mail/flatpak-node/cache/electron
+        npm_config_nodedir: /usr/lib/sdk/node24
+        NODE_ENV: production
+        RELEASE: production
     build-commands:
-      - bsdtar -Oxf ProtonMail.deb data.tar.xz | bsdtar -xf -
-      - mv "usr/lib/proton-mail" ${FLATPAK_DEST}/proton-mail
+      # drop private registries from .yarnrc.yml and trim the workspace list
+      - python3 prepare-webclients.py
+
+      - bash flatpak-node/setup_sdk_node_headers.sh
+      - yarn plugin import $FLATPAK_BUILDER_BUILDDIR/flatpak-node/flatpak-yarn.js
+      - yarn convertToZip $(which yarn)
+      - yarn install --mode=skip-build
+
+      - cd applications/inbox-desktop && yarn exec -- electron-forge package
+
+      - |
+        case "$FLATPAK_ARCH" in
+          aarch64) ELECTRON_ARCH=arm64 ;;
+          *)       ELECTRON_ARCH=x64 ;;
+        esac
+        cp -r "applications/inbox-desktop/out/Proton Mail-linux-${ELECTRON_ARCH}" "${FLATPAK_DEST}/proton-mail"
 
       # To allow separate locales
       # https://searchfox.org/mozilla-central/rev/8a4f55bc09ffc5c25dcb4586c51ae4a9fee77b4c/taskcluster/docker/firefox-flatpak/runme.sh#131-133
@@ -45,35 +65,42 @@ modules:
           ln -sf "${FLATPAK_DEST}/share/runtime/locale/${locale%%-*}/$(basename $lang)" "${FLATPAK_DEST}/proton-mail/locales/$(basename $lang)"
         done
 
-      - install -Dm644 icon.svg "${FLATPAK_DEST}/share/icons/hicolor/scalable/apps/${FLATPAK_ID}.svg"
-      - install -Dm644 usr/share/applications/proton-mail.desktop "${FLATPAK_DEST}/share/applications/${FLATPAK_ID}.desktop"
-      - desktop-file-edit --set-key=Exec --set-value='start-proton-mail %U' --set-icon=${FLATPAK_ID}
-        "${FLATPAK_DEST}/share/applications/${FLATPAK_ID}.desktop"
+      - install -Dm644 applications/inbox-desktop/assets/linux/icon.svg "${FLATPAK_DEST}/share/icons/hicolor/scalable/apps/${FLATPAK_ID}.svg"
+      - install -Dm644 me.proton.Mail.desktop "${FLATPAK_DEST}/share/applications/${FLATPAK_ID}.desktop"
       - patch-electron-desktop-filename "${FLATPAK_DEST}/proton-mail/resources/app.asar"
-
-      # Install the wrapper script to start it.
-      - install -Dm 755 start-proton-mail.sh /app/bin/start-proton-mail
-
-      - install -Dm644 me.proton.Mail.metainfo.xml /app/share/metainfo/$FLATPAK_ID.metainfo.xml
+      - install -Dm644 me.proton.Mail.metainfo.xml "${FLATPAK_DEST}/share/metainfo/${FLATPAK_ID}.metainfo.xml"
+      - install -Dm644 LICENSE "${FLATPAK_DEST}/share/licenses/${FLATPAK_ID}/LICENSE"
+      - install -Dm755 start-proton-mail.sh "${FLATPAK_DEST}/bin/start-proton-mail"
     sources:
-      - type: file
-        dest-filename: ProtonMail.deb
-        only-arches: [x86_64]
-        url: https://proton.me/download/mail/linux/1.14.0/ProtonMail-desktop-beta.deb
-        sha512: 5908632fe34e3d40b698c9459bb774428a5b6aedd7c89ed9ff68394b90227c689a5a03ee719f9b3a4e20c7c4a69ce67fe40ab12e0f344359e9005c7be839d818
+      - type: git
+        url: https://github.com/ProtonMail/WebClients.git
+        tag: proton-inbox-desktop@1.14.0
+        commit: a3b4d498eb27734c2f48ce41dfed4f8342eabc48
         x-checker-data:
           type: json
           url: https://proton.me/download/mail/linux/version.json
+          is-main-source: true
           version-query: .Releases | map(select(.CategoryName == "Stable")) | .[0].Version
-          url-query: .Releases | map(select(.CategoryName == "Stable")) | .[0].File[0].Url
+          timestamp-query: .Releases | map(select(.CategoryName == "Stable")) | .[0].ReleaseDate
+          tag-query: '"proton-inbox-desktop@" + (.Releases | map(select(.CategoryName
+            == "Stable")) | .[0].Version)'
+
+      # regenerate when the tag changes, see .github/workflows
+      - generated-sources.json
+
+      - type: patch
+        path: electron-zip-dir.patch
 
       - type: file
-        path: icon.svg
+        path: prepare-webclients.py
+
+      - type: file
+        path: me.proton.Mail.desktop
+
+      - type: file
+        path: me.proton.Mail.metainfo.xml
 
       - type: script
         dest-filename: start-proton-mail.sh
         commands:
-          - exec zypak-wrapper "/app/proton-mail/Proton Mail Beta" "$@"
-
-      - type: file
-        path: me.proton.Mail.metainfo.xml
+          - exec env TMPDIR="$XDG_RUNTIME_DIR/app/${FLATPAK_ID:-me.proton.Mail}" zypak-wrapper "/app/proton-mail/Proton Mail" "$@"

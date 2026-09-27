@@ -9,3 +9,8 @@ build-dir
 repo
 
 # End of https://www.toptal.com/developers/gitignore/api/flatpak
+
+# local build dirs
+_webclient/
+_tools/
+__pycache__/
