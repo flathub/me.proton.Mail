@@ -32,7 +32,7 @@ jobs:
 
       - uses: actions/setup-python@v6
 
-      - run: pip install aiohttp
+      - run: pip install aiohttp pyyaml
 
       - run: git clone --depth=1 https://github.com/flatpak/flatpak-builder-tools.git _tools
 
