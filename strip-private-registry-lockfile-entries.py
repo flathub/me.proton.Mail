@@ -20,6 +20,11 @@ These packages are NOT needed by the applications/inbox-desktop workspace.
 flatpak-node-generator would try to resolve
 them from the public npm registry and fail with HTTP 404 errors.
 
+The lockfile also pins xlsx to a tarball on SheetJS's own CDN
+(https://cdn.sheetjs.com/), used only by applications/lumo. The generator
+looks such URL resolutions up on the npm registry, where that version doesn't
+exist, so it is removed as well.
+
 This script identifies every top-level Yarn 4 lockfile stanza whose package:
   1. Is not a workspace package (linkType: hard, not soft).
   2. Is listed under a private-registry scope, OR uses __archiveUrl pointing
@@ -78,6 +83,8 @@ def strip_private_lockfile_entries(input_path: str, output_path: str) -> None:
             or "__archiveUrl" in stanza
             # Known private @proton/* packages
             or re.match(r'^"@proton/proton-foundation-search@', header)
+            # xlsx from the SheetJS CDN (only used by applications/lumo)
+            or re.match(r'^"xlsx@https://cdn\.sheetjs\.com/', header)
         )
 
         if is_private:
