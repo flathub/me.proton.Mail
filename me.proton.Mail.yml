@@ -75,7 +75,7 @@ modules:
       - type: git
         url: https://github.com/ProtonMail/WebClients.git
         tag: proton-inbox-desktop@1.14.0
-        commit: a3b4d498eb27734c2f48ce41dfed4f8342eabc48
+        commit: 3a4b19d841ea068a8e3f44952bc173fa5a1deb88
         x-checker-data:
           type: json
           url: https://proton.me/download/mail/linux/version.json
@@ -103,4 +103,5 @@ modules:
       - type: script
         dest-filename: start-proton-mail.sh
         commands:
-          - exec env TMPDIR="$XDG_RUNTIME_DIR/app/${FLATPAK_ID:-me.proton.Mail}" zypak-wrapper "/app/proton-mail/Proton Mail" "$@"
+          - exec env TMPDIR="$XDG_RUNTIME_DIR/app/${FLATPAK_ID:-me.proton.Mail}" zypak-wrapper
+            "/app/proton-mail/Proton Mail" "$@"
