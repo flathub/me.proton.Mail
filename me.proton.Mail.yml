@@ -20,33 +20,33 @@ modules:
   - name: proton-mail
     buildsystem: simple
     build-options:
-      append-path: /usr/lib/sdk/node24/bin
+      prepend-path: /usr/lib/sdk/node24/bin:/run/build/proton-mail/.bin:/run/build/proton-mail/node_modules/.bin
       env:
         HOME: /run/build/proton-mail
-        # skips husky/config-app in the root postinstall
         CI: 'true'
         SENTRY_CLI_SKIP_DOWNLOAD: '1'
-        # the workspace list is trimmed below, so the lockfile will change
-        YARN_ENABLE_IMMUTABLE_INSTALLS: '0'
-        YARN_ENABLE_NETWORK: '0'
-        YARN_ENABLE_TELEMETRY: '0'
-        YARN_ENABLE_GLOBAL_CACHE: '0'
-        YARN_GLOBAL_FOLDER: /run/build/proton-mail/flatpak-node/yarn-berry
         XDG_CACHE_HOME: /run/build/proton-mail/flatpak-node/cache
         FLATPAK_ELECTRON_ZIP_DIR: /run/build/proton-mail/flatpak-node/cache/electron
         npm_config_nodedir: /usr/lib/sdk/node24
+        SWC_NATIVE_BINDING_CACHE: /tmp/swc
         NODE_ENV: production
         RELEASE: production
     build-commands:
-      # drop private registries from .yarnrc.yml and trim the workspace list
-      - python3 prepare-webclients.py
+      - rm -f .npmrc
+      - install -Dm755 pnpm-exe/pnpm .bin/pnpm
+      - |
+        python3 -c "
+        import pathlib, re
+        text = pathlib.Path('pnpm-workspace.yaml').read_text()
+        text = re.sub(r'minimumReleaseAge:\s*\d+\s*\n', '', text)
+        text = re.sub(r'minimumReleaseAgeExclude:\s*\n(?:\s*-\s*.*\n)*', '', text)
+        text += '\ntrustLockfile: true\n'
+        pathlib.Path('pnpm-workspace.yaml').write_text(text)
+        "
+      - pnpm --filter proton-inbox-desktop... install --offline --frozen-lockfile --trust-lockfile --ignore-scripts
 
-      - bash flatpak-node/setup_sdk_node_headers.sh
-      - yarn plugin import $FLATPAK_BUILDER_BUILDDIR/flatpak-node/flatpak-yarn.js
-      - yarn convertToZip $(which yarn)
-      - yarn install --mode=skip-build
 
-      - cd applications/inbox-desktop && yarn exec -- electron-forge package
+      - cd applications/inbox-desktop && pnpm exec electron-forge package
 
       - |
         case "$FLATPAK_ARCH" in
@@ -74,8 +74,8 @@ modules:
     sources:
       - type: git
         url: https://github.com/ProtonMail/WebClients.git
-        tag: proton-inbox-desktop@1.14.0
-        commit: 3a4b19d841ea068a8e3f44952bc173fa5a1deb88
+        tag: proton-inbox-desktop@1.16.0
+        commit: 84d10082b8ba1d8ca321f13230f9ad25b767a2d6
         x-checker-data:
           type: json
           url: https://proton.me/download/mail/linux/version.json
@@ -85,14 +85,22 @@ modules:
           tag-query: '"proton-inbox-desktop@" + (.Releases | map(select(.CategoryName
             == "Stable")) | .[0].Version)'
 
-      # regenerate when the tag changes, see .github/workflows
+      - type: archive
+        url: https://registry.npmjs.org/@pnpm/exe.linux-x64/-/exe.linux-x64-12.13.0.tgz
+        sha512: b781185051b848f61a2495504e85883eafe52c1aae08f0b132db7dbd5fff1e2ad20e5df7d9d9f10e7c20bdd5b6f6ca8b83739bdb1ef3150ebd1d92f2a02c9fa5
+        dest: pnpm-exe
+        only-arches: [x86_64]
+
+      - type: archive
+        url: https://registry.npmjs.org/@pnpm/exe.linux-arm64/-/exe.linux-arm64-12.13.0.tgz
+        sha512: 8e9dbd89af9f4cd861797cede05454c390b0156f5c68f34474b46ecbbfc395bbf7b23fa21e575f2577c2a2390f13883bd4d3d5c0ca58e44a1cee791f59ec6aac
+        dest: pnpm-exe
+        only-arches: [aarch64]
+
       - generated-sources.json
 
       - type: patch
         path: electron-zip-dir.patch
-
-      - type: file
-        path: prepare-webclients.py
 
       - type: file
         path: me.proton.Mail.desktop

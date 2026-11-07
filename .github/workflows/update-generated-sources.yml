@@ -61,15 +61,16 @@ jobs:
             --branch "${{ steps.upstream.outputs.tag }}" \
             https://github.com/ProtonMail/WebClients.git _webclient
           git -C _webclient sparse-checkout set --no-cone \
-            /yarn.lock /applications/inbox-desktop/package.json
+            /pnpm-lock.yaml /applications/inbox-desktop/package.json
 
       - name: Regenerate generated-sources.json
         if: steps.upstream.outputs.needed == 'true'
         run: |
           python3 strip-private-registry-lockfile-entries.py \
-            _webclient/yarn.lock _webclient/yarn-public.lock
+            _webclient/pnpm-lock.yaml _webclient/pnpm-public.lock
           PYTHONPATH=_tools/node python3 -m flatpak_node_generator \
-            --electron-node-headers yarn _webclient/yarn-public.lock \
+            --electron-node-headers --pnpm-store-version v11 \
+            pnpm _webclient/pnpm-public.lock \
             -o generated-sources.json
           python3 prune-generated-sources.py generated-sources.json \
             _webclient/applications/inbox-desktop/package.json
