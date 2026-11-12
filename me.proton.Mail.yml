@@ -17,10 +17,25 @@ finish-args:
   - --talk-name=org.freedesktop.secrets
   - --env=XCURSOR_PATH=~/.icons:/app/share/icons:/icons:/run/host/user-share/icons:/run/host/share/icons
 modules:
+  - name: pnpm
+    buildsystem: simple
+    cleanup: ['*']
+    build-commands:
+      - install -Dm755 pnpm -t ${FLATPAK_DEST}/bin
+    sources:
+      - type: archive
+        url: https://registry.npmjs.org/@pnpm/exe.linux-x64/-/exe.linux-x64-12.13.0.tgz
+        sha512: b781185051b848f61a2495504e85883eafe52c1aae08f0b132db7dbd5fff1e2ad20e5df7d9d9f10e7c20bdd5b6f6ca8b83739bdb1ef3150ebd1d92f2a02c9fa5
+        only-arches: [x86_64]
+      - type: archive
+        url: https://registry.npmjs.org/@pnpm/exe.linux-arm64/-/exe.linux-arm64-12.13.0.tgz
+        sha512: 8e9dbd89af9f4cd861797cede05454c390b0156f5c68f34474b46ecbbfc395bbf7b23fa21e575f2577c2a2390f13883bd4d3d5c0ca58e44a1cee791f59ec6aac
+        only-arches: [aarch64]
+
   - name: proton-mail
     buildsystem: simple
     build-options:
-      prepend-path: /usr/lib/sdk/node24/bin:/run/build/proton-mail/.bin:/run/build/proton-mail/node_modules/.bin
+      prepend-path: /usr/lib/sdk/node24/bin:/run/build/proton-mail/node_modules/.bin
       env:
         HOME: /run/build/proton-mail
         CI: 'true'
@@ -33,7 +48,6 @@ modules:
         RELEASE: production
     build-commands:
       - rm -f .npmrc
-      - install -Dm755 pnpm-exe/pnpm .bin/pnpm
       - |
         python3 -c "
         import pathlib, re
@@ -84,18 +98,6 @@ modules:
           timestamp-query: .Releases | map(select(.CategoryName == "Stable")) | .[0].ReleaseDate
           tag-query: '"proton-inbox-desktop@" + (.Releases | map(select(.CategoryName
             == "Stable")) | .[0].Version)'
-
-      - type: archive
-        url: https://registry.npmjs.org/@pnpm/exe.linux-x64/-/exe.linux-x64-12.13.0.tgz
-        sha512: b781185051b848f61a2495504e85883eafe52c1aae08f0b132db7dbd5fff1e2ad20e5df7d9d9f10e7c20bdd5b6f6ca8b83739bdb1ef3150ebd1d92f2a02c9fa5
-        dest: pnpm-exe
-        only-arches: [x86_64]
-
-      - type: archive
-        url: https://registry.npmjs.org/@pnpm/exe.linux-arm64/-/exe.linux-arm64-12.13.0.tgz
-        sha512: 8e9dbd89af9f4cd861797cede05454c390b0156f5c68f34474b46ecbbfc395bbf7b23fa21e575f2577c2a2390f13883bd4d3d5c0ca58e44a1cee791f59ec6aac
-        dest: pnpm-exe
-        only-arches: [aarch64]
 
       - generated-sources.json
 
