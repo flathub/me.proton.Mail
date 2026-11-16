@@ -104,6 +104,9 @@ modules:
       - type: patch
         path: electron-zip-dir.patch
 
+      - type: patch
+        path: skip-update-check-flatpak.patch
+
       - type: file
         path: me.proton.Mail.desktop
 
