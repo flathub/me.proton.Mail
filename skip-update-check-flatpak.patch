@@ -1,0 +1,20 @@
+diff --git a/applications/inbox-desktop/src/update/update.ts b/applications/inbox-desktop/src/update/update.ts
+--- a/applications/inbox-desktop/src/update/update.ts
++++ b/applications/inbox-desktop/src/update/update.ts
+@@ -1,6 +1,7 @@
+ import { DESKTOP_PLATFORMS, MAIL_APP_NAME, RELEASE_CATEGORIES } from "@proton/shared/lib/constants";
+ import { DesktopVersion, VersionFile, VersionFileSchema } from "@proton/shared/lib/desktop/DesktopVersion";
+ import { app, autoUpdater, dialog } from "electron";
++import { existsSync } from "node:fs";
+ import { c } from "ttag";
+ import { updateElectronApp, UpdateSourceType } from "update-electron-app";
+ import pkg from "../../package.json";
+@@ -34,7 +35,7 @@ export let cachedLatestVersion: DesktopVersion | null = null;
+  * it will trigger the update.
+  */
+ export function initializeUpdateChecks() {
+-    if (isSnap) {
++    if (isSnap || existsSync("/.flatpak-info")) {
+         updateLogger.info("Skipping update check initialization. Running as Snap.");
+         return;
+     }
